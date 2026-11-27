@@ -29,6 +29,15 @@ public final class Operaciones {
             return e.personas.mapa.get(id);
         }
 
+        if (e.tipo == Estado.Tipo.LinkedList) {
+            for (Persona p : e.personas.lista) {
+                if (p.id.equals(id)) {
+                    return p;
+                }
+            }
+            return null;
+        }
+
         throw pendiente(e, "buscarPersona");
     }
 
@@ -98,6 +107,37 @@ public final class Operaciones {
             return true;
         }
 
+        if (e.tipo == Estado.Tipo.LinkedList) {
+            boolean existePais = false;
+
+            for (Pais pais : e.paises.lista) {
+                if (pais.id.equals(codigoPais)) {
+                    existePais = true;
+                    break;
+                }
+            }
+
+            if (!existePais) {
+                return false;
+            }
+
+            for (int i = 0; i < e.personas.lista.size(); i++) {
+                Persona p = e.personas.lista.get(i);
+
+                if (p.id.equals(idPersona)) {
+                    if (p.codigoPais.equals(codigoPais)) {
+                        return false;
+                    }
+
+                    Persona nueva = new Persona(p.id, p.nombre, codigoPais);
+                    e.personas.lista.set(i, nueva);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         throw pendiente(e, "corregirPais");
     }
 
@@ -165,6 +205,36 @@ public final class Operaciones {
             return true;
         }
 
+
+        if (e.tipo == Estado.Tipo.LinkedList) {
+
+            if (codigo == null || codigo.trim().isEmpty()
+                    || !Datos.ACTIVIDADES.contains(actividad)) {
+                return false;
+            }
+
+            if (buscarPersona(e, idPersona) == null) {
+                return false;
+            }
+
+            for (Inscripcion i : e.inscripciones.lista) {
+                if (i.id.equals(codigo)
+                        || (i.idPersona.equals(idPersona)
+                        && i.actividad.equals(actividad))) {
+                    return false;
+                }
+            }
+
+            Inscripcion nueva = new Inscripcion(
+                codigo,
+                idPersona,
+                actividad
+            );
+
+            e.inscripciones.lista.add(nueva);
+            return true;
+        }
+
         throw pendiente(e, "registrarInscripcion");
     }
 
@@ -193,6 +263,22 @@ public final class Operaciones {
                 e.inscripciones.mapa.remove(codigo);
 
                 return true;
+            }
+
+            return false;
+        }
+
+        if (e.tipo == Estado.Tipo.LinkedList) {
+
+            Iterator<Inscripcion> it = e.inscripciones.lista.iterator();
+
+            while (it.hasNext()) {
+                Inscripcion inscripcion = it.next();
+
+                if (inscripcion.id.equals(codigo)) {
+                    it.remove();
+                    return true;
+                }
             }
 
             return false;
@@ -234,6 +320,22 @@ public final class Operaciones {
                         persona.codigoPais,
                         resultado.get(
                                 persona.codigoPais) + 1);
+            }
+
+            return resultado;
+        }
+
+        if (e.tipo == Estado.Tipo.LinkedList) {
+
+            Map<String, Integer> resultado = new TreeMap<>();
+
+            for (Pais pais : e.paises.lista) {
+                resultado.put(pais.id, 0);
+            }
+
+            for (Persona persona : e.personas.lista) {
+                String pais = persona.codigoPais;
+                resultado.put(pais, resultado.get(pais) + 1);
             }
 
             return resultado;
